@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import openpyxl
-import os
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 app = FastAPI()
 
@@ -15,25 +16,32 @@ app.add_middleware(
 
 class Student(BaseModel):
     name: str
-    email: str
     phone: str
+    email: str
     course: str
 
-EXCEL_FILE = 'students.xlsx'
+SCOPES = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    "https://www.googleapis.com/auth/drive"
+    
+]
 
-def init_excel():
-    if not os.path.exists(EXCEL_FILE):
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Students"
-        ws.append(["Name", "Email", "Phone", "Course"])
-        wb.save(EXCEL_FILE)
+creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+client = gspread.authorize(creds)
+sheet = client.open("SAT-IELTS-School").sheet1
+
     
 @app.post("/register")
 def register(student: Student):
-    init_excel()
-    wb = openpyxl.load_workbook(EXCEL_FILE)
-    ws = wb.active
-    ws.append([student.name, student.email, student.phone, student.course])
-    wb.save(EXCEL_FILE)
-    return {"message": "Student registered successfully"}
+    try:
+        sheet.append_row([
+            student.name,
+            student.phone,
+            student.email,
+            student.course,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ])
+        return {"message": "Enrollment successful!"}
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return {"error": str(e)}
