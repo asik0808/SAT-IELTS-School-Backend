@@ -9,7 +9,7 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import os
 import json
-
+import base64
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -34,7 +34,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-credentials_json = os.environ.get("GOOGLE_CREDENTIALS")
+credentials_b64 = os.environ.get("GOOGLE_CREDENTIALS")
+credentials_json = base64.b64decode(credentials_b64).decode("utf-8")
 credentials_info = json.loads(credentials_json)
 creds = Credentials.from_service_account_info(credentials_info, scopes=SCOPES)
 client = gspread.authorize(creds)
