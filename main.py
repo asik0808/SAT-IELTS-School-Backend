@@ -27,7 +27,7 @@ class Student(BaseModel):
     name: str
     phone: str
     course: str
-    source: str
+    email: str
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -49,7 +49,7 @@ async def register(request: Request, student: Student):
             student.name,
             student.phone,
             student.course,
-            student.source,
+            student.email,
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ])
         return {"message": "Enrollment successful!"}
