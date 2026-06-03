@@ -7,6 +7,9 @@ from slowapi.errors import RateLimitExceeded
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import os
+import json
+
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -31,7 +34,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+credentials_json = os.environ.get("GOOGLE_CREDENTIALS")
+credentials_info = json.loads(credentials_json)
+creds = Credentials.from_service_account_info(credentials_info, scopes=SCOPES)
 client = gspread.authorize(creds)
 sheet = client.open("SAT-IELTS-School").sheet1
 
